@@ -14,20 +14,33 @@ const useBinanceFuturesSocket = (symbol: string) => {
       `wss://fstream.binance.com/ws/${symbol.toLowerCase()}@aggTrade`,
     );
 
-    socketRef.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+    socketRef.current.onopen = () => {
+      console.log("WebSocket connected!");
+    };
 
-      setPrice(parseFloat(data.p));
-      setTimestamp(timeToLocal(data.T) as UTCTimestamp);
+    socketRef.current.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+
+        setPrice(parseFloat(data.p));
+        setTimestamp(timeToLocal(data.T) as UTCTimestamp);
+      } catch (err) {
+        console.error("Error parsing data:", err);
+      }
     };
 
     socketRef.current.onerror = (error) => {
       console.error("WebSocket error:", error);
     };
 
+    socketRef.current.onclose = () => {
+      console.log("WebSocket closed!");
+    };
+
     return () => {
       if (socketRef.current) {
         socketRef.current.close();
+        socketRef.current = null;
       }
     };
   }, [symbol]);

@@ -1,16 +1,36 @@
 "use client";
 
-import { Box, Grid } from "@mui/material";
+import React, { useEffect, useState } from "react";
+
+import { Box, Button, Grid } from "@mui/material";
 import ChartComponent from "./ChartComponent";
 import TokenSelect from "./TokenSelect";
-import { useState } from "react";
 
 interface IChartContainerProps {
-  symbols: string[];
+  id: number;
+  initialSymbols: string[];
+  onRemove: (id: number) => void;
 }
 
-const ChartContainer: React.FC<IChartContainerProps> = ({ symbols }) => {
-  const [selectedSymbol, setSelectedSymbol] = useState<string>("");
+const ChartContainer: React.FC<IChartContainerProps> = ({
+  id,
+  initialSymbols,
+  onRemove,
+}) => {
+  const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
+
+  useEffect(() => {
+    const savedSymbol = localStorage.getItem(`selectedSymbol-${id}`);
+    if (savedSymbol) {
+      setSelectedSymbol(savedSymbol);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (selectedSymbol) {
+      localStorage.setItem(`selectedSymbol-${id}`, selectedSymbol);
+    }
+  }, [selectedSymbol, id]);
 
   return (
     <Grid item xs={12} sm={12} md={6}>
@@ -23,11 +43,21 @@ const ChartContainer: React.FC<IChartContainerProps> = ({ symbols }) => {
         }}
       >
         <TokenSelect
-          symbols={symbols}
-          selectedSymbol={selectedSymbol}
-          setSelectedSymbol={setSelectedSymbol}
+          symbols={initialSymbols}
+          onSelect={setSelectedSymbol}
+          storageKey={`selectedSymbol-${id}`}
         />
-        <ChartComponent symbol={selectedSymbol} />
+        <Box sx={{ width: "100%" }}>
+          <ChartComponent symbol={selectedSymbol} />
+        </Box>
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={() => onRemove(id)}
+          sx={{ mt: 2 }}
+        >
+          Delete
+        </Button>
       </Box>
     </Grid>
   );

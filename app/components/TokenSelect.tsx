@@ -1,32 +1,40 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+
 import {
+  Box,
+  CircularProgress,
+  FormControl,
   InputLabel,
   MenuItem,
-  FormControl,
   Select,
-  CircularProgress,
   SelectChangeEvent,
-  Box,
 } from "@mui/material";
 
-interface ITokenSelectProps {
+interface TokenSelectProps {
   symbols: string[];
-  selectedSymbol: string;
-  setSelectedSymbol: (symbol: string) => void;
+  storageKey: string;
+  onSelect: (symbol: string) => void;
 }
 
-const TokenSelect: React.FC<ITokenSelectProps> = ({
+const TokenSelect: React.FC<TokenSelectProps> = ({
   symbols,
-  selectedSymbol,
-  setSelectedSymbol,
+  onSelect,
+  storageKey,
 }) => {
+  const [selectedSymbol, setSelectedSymbol] = useState<string>("");
+
   useEffect(() => {
-    if (selectedSymbol && !symbols.includes(selectedSymbol)) {
-      setSelectedSymbol("");
+    onSelect(selectedSymbol);
+  }, [selectedSymbol, onSelect]);
+
+  useEffect(() => {
+    const savedSymbol = localStorage.getItem(storageKey);
+    if (savedSymbol) {
+      setSelectedSymbol(savedSymbol);
     }
-  }, []);
+  }, [storageKey, onSelect]);
 
   const handleChange = (event: SelectChangeEvent<string>) => {
     const symbol = event.target.value as string;
@@ -46,9 +54,6 @@ const TokenSelect: React.FC<ITokenSelectProps> = ({
           label="Token"
           onChange={handleChange}
         >
-          <MenuItem value="">
-            <em>None</em>
-          </MenuItem>
           {symbols.map((symbol) => (
             <MenuItem key={symbol} value={symbol}>
               {symbol}

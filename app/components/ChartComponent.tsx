@@ -4,11 +4,11 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import useBinanceFuturesSocket from "@/hooks/useBinanceFutureSocket";
 import {
+  createChart,
   IChartApi,
   ISeriesApi,
   LineData,
   UTCTimestamp,
-  createChart,
 } from "lightweight-charts";
 
 const options = {
@@ -31,6 +31,7 @@ const options = {
   },
   timeScale: {
     barSpacing: 28,
+    timeVisible: true,
   },
 } as const;
 
@@ -67,7 +68,7 @@ const ChartComponent: React.FC<{ symbol: string }> = ({ symbol }) => {
     }
 
     window.addEventListener("resize", handleResize);
-    resizeChart(); // Call once to set initial size
+    resizeChart();
 
     return () => {
       window.removeEventListener("resize", handleResize);
@@ -81,9 +82,9 @@ const ChartComponent: React.FC<{ symbol: string }> = ({ symbol }) => {
   }, [symbol]);
 
   useEffect(() => {
-    if (!symbol) return;
+    if (!symbol || !timestamp || price === null) return;
 
-    if (seriesInstanceRef.current && price !== null) {
+    if (seriesInstanceRef.current) {
       const newData: LineData<UTCTimestamp> = {
         time: timestamp,
         value: price,
@@ -95,7 +96,7 @@ const ChartComponent: React.FC<{ symbol: string }> = ({ symbol }) => {
         seriesInstanceRef.current.update(newData);
       }
     }
-  }, [timestamp, price, symbol]);
+  }, [timestamp, price]);
 
   return (
     <div
