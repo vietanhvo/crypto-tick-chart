@@ -1,15 +1,15 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
+import useBinanceFuturesSocket from "@/hooks/useBinanceFutureSocket";
 import {
+  IChartApi,
   ISeriesApi,
   LineData,
-  Time,
   UTCTimestamp,
-  WhitespaceData,
+  createChart,
 } from "lightweight-charts";
-import { Chart, LineSeries, TimeScale } from "lightweight-charts-react-wrapper";
 
 const options = {
   height: 300,
@@ -24,51 +24,84 @@ const options = {
     },
   },
   crosshair: {
-    vertLine: {
-      width: 4,
-      color: "rgba(224, 227, 235, 0.1)",
-      style: 0,
-    },
     horzLine: {
-      visible: false,
-      labelVisible: false,
+      visible: true,
+      labelVisible: true,
     },
   },
-  grid: {
-    vertLines: {
-      color: "rgba(42, 46, 57, 0)",
-    },
-    horzLines: {
-      color: "rgba(42, 46, 57, 0)",
-    },
-  },
-  handleScroll: {
-    vertTouchDrag: false,
+  timeScale: {
+    barSpacing: 28,
   },
 } as const;
 
-const initialData: (WhitespaceData<Time> | LineData<Time>)[] = [];
+const initialData: LineData<UTCTimestamp>[] = [];
 
-const ChartComponent: React.FC = () => {
-  const [stateData, setStateData] = useState(initialData);
-  const series = useRef<ISeriesApi<"Line">>(null);
-  const chartRef = useRef(null);
+const ChartComponent: React.FC<{ symbol: string }> = ({ symbol }) => {
+  const [_data, setData] = useState<LineData<UTCTimestamp>[]>(initialData);
+  const chartContainerRef = useRef<HTMLDivElement | null>(null);
+  const chartInstanceRef = useRef<IChartApi | null>(null);
+  const seriesInstanceRef = useRef<ISeriesApi<"Line"> | null>(null);
+
+  const { timestamp, price } = useBinanceFuturesSocket(symbol);
+
+  const resizeChart = useCallback(() => {
+    if (chartInstanceRef.current && chartContainerRef.current) {
+      const { width } = chartContainerRef.current.getBoundingClientRect();
+      chartInstanceRef.current.applyOptions({ width });
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      resizeChart();
+    };
+
+    if (chartContainerRef.current && !chartInstanceRef.current) {
+      const chart = createChart(chartContainerRef.current, {
+        ...options,
+        width: chartContainerRef.current.clientWidth,
+      });
+      seriesInstanceRef.current = chart.addLineSeries();
+      seriesInstanceRef.current.setData(initialData);
+      chartInstanceRef.current = chart;
+    }
+
+    window.addEventListener("resize", handleResize);
+    resizeChart(); // Call once to set initial size
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [resizeChart]);
+
+  useEffect(() => {
+    if (seriesInstanceRef.current) {
+      seriesInstanceRef.current.setData(initialData);
+    }
+  }, [symbol]);
+
+  useEffect(() => {
+    if (!symbol) return;
+
+    if (seriesInstanceRef.current && price !== null) {
+      const newData: LineData<UTCTimestamp> = {
+        time: timestamp,
+        value: price,
+      };
+
+      setData((prevData) => [...prevData, newData]);
+
+      if (seriesInstanceRef.current) {
+        seriesInstanceRef.current.update(newData);
+      }
+    }
+  }, [timestamp, price, symbol]);
 
   return (
-    <div ref={chartRef} style={{ width: "100%", maxWidth: "1000px" }}>
-      <Chart {...options} width={chartRef.current?.clientWidth}>
-        <LineSeries
-          ref={series}
-          data={stateData}
-          color="rgb(0, 120, 255)"
-          lineWidth={2}
-          crosshairMarkerVisible={false}
-          lastValueVisible={false}
-          priceLineVisible={false}
-        />
-        <TimeScale rightOffset={12} secondsVisible={true} timeVisible={true} />
-      </Chart>
-    </div>
+    <div
+      ref={chartContainerRef}
+      style={{ width: "100%", height: "300px" }}
+    ></div>
   );
 };
 

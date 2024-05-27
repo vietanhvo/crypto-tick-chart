@@ -27,7 +27,7 @@ const ChartContainer: React.FC<IChartContainerProps> = ({ symbols }) => {
           selectedSymbol={selectedSymbol}
           setSelectedSymbol={setSelectedSymbol}
         />
-        <ChartComponent />
+        <ChartComponent symbol={selectedSymbol} />
       </Box>
     </Grid>
   );
