@@ -9,9 +9,8 @@ import {
   LineData,
   UTCTimestamp,
 } from "lightweight-charts";
-import { Exchange, ProductType } from "@/common";
 import { useChartContext } from "@/context";
-import useChartSocket from "@/hooks/useChartSocket";
+import { useChartData } from "@/context/ChartDataProvider";
 
 const options = {
   height: 300,
@@ -41,11 +40,7 @@ const initialData: LineData<UTCTimestamp>[] = [];
 const ChartComponent: React.FC<{ index: number }> = ({ index }) => {
   const { selectedSymbols } = useChartContext();
   const { exchange, productType, data } = selectedSymbols[index];
-  const { price, timestamp } = useChartSocket(
-    exchange as Exchange,
-    productType as ProductType,
-    data.symbol,
-  );
+  const { chartData } = useChartData();
 
   const chartContainerRef = useRef<HTMLDivElement | null>(null);
   const chartInstanceRef = useRef<IChartApi | null>(null);
@@ -93,7 +88,7 @@ const ChartComponent: React.FC<{ index: number }> = ({ index }) => {
       seriesInstanceRef.current.setData(initialData);
       chartInstanceRef.current = chart;
     }
-  }, []);
+  }, [data.pricePrecision]);
 
   useEffect(() => {
     if (seriesInstanceRef.current) {
@@ -102,19 +97,26 @@ const ChartComponent: React.FC<{ index: number }> = ({ index }) => {
   }, [exchange, productType, data]);
 
   useEffect(() => {
-    if (!data?.symbol || !timestamp || price === null) return;
+    const currentData =
+      chartData[`${exchange}_${productType}_${data.symbol.toLowerCase()}`];
+    if (
+      !data?.symbol ||
+      !currentData ||
+      !currentData.timestamp ||
+      currentData.price === null
+    ) {
+      return;
+    }
 
     if (seriesInstanceRef.current) {
       const newData: LineData<UTCTimestamp> = {
-        time: timestamp,
-        value: price,
+        time: currentData.timestamp,
+        value: currentData.price,
       };
 
-      if (seriesInstanceRef.current) {
-        seriesInstanceRef.current.update(newData);
-      }
+      seriesInstanceRef.current.update(newData);
     }
-  }, [timestamp, price]);
+  }, [chartData, exchange, productType, data.symbol]);
 
   return (
     <div

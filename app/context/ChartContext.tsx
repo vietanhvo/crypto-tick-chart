@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 import { Exchange, ITokenData, ProductType } from "@/common";
 
@@ -60,6 +60,21 @@ export const ChartProvider: React.FC<IChartProviderProps> = ({
     }
     return exchangeProducts;
   };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedSymbols = localStorage.getItem("selectedSymbols");
+      if (storedSymbols) {
+        setSelectedSymbols(JSON.parse(storedSymbols));
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("selectedSymbols", JSON.stringify(selectedSymbols));
+    }
+  }, [selectedSymbols]);
 
   return (
     <ChartContext.Provider

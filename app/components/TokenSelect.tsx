@@ -3,13 +3,8 @@
 import React from "react";
 
 import { useChartContext } from "@/context";
-import {
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-} from "@mui/material";
+import { FormControl, TextField } from "@mui/material";
+import AutocompleteVirtual from "./AutocompleteVirtual";
 
 interface TokenSelectProps {
   index: number;
@@ -17,12 +12,12 @@ interface TokenSelectProps {
 
 const TokenSelect: React.FC<TokenSelectProps> = ({ index }) => {
   const { allSymbols, selectedSymbols, setSelectedSymbols } = useChartContext();
-
   const { exchange, productType } = selectedSymbols[index];
-  const symbolsList = allSymbols[exchange][productType];
 
-  const handleChange = (event: SelectChangeEvent<string>) => {
-    const symbol = event.target.value as string;
+  const symbolsList = allSymbols?.[exchange]?.[productType] ?? [];
+
+  const handleChange = (newValue: string) => {
+    const symbol = newValue;
     setSelectedSymbols((prev) => {
       const updatedSymbols = [...prev];
 
@@ -35,20 +30,14 @@ const TokenSelect: React.FC<TokenSelectProps> = ({ index }) => {
 
   return (
     <FormControl fullWidth size="small">
-      <InputLabel id="token-select-label">Token</InputLabel>
-      <Select
-        labelId="token-select-label"
-        id="token-select"
-        value={selectedSymbols[index].data.symbol}
-        label="Token"
-        onChange={handleChange}
-      >
-        {symbolsList?.map(({ symbol }) => (
-          <MenuItem key={symbol} value={symbol}>
-            {symbol}
-          </MenuItem>
-        ))}
-      </Select>
+      <AutocompleteVirtual
+        options={symbolsList.map((data) => data.symbol)}
+        value={selectedSymbols?.[index]?.data?.symbol || null}
+        onChange={(_, newValue) => handleChange(newValue)}
+        renderInput={(params) => (
+          <TextField {...params} size="small" label="Token" />
+        )}
+      />
     </FormControl>
   );
 };

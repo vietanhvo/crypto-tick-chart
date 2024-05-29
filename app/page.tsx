@@ -13,7 +13,10 @@ import {
 } from "@/common";
 import baseDataProviderService from "@/data-provider";
 import { ChartProvider } from "./context";
-import { countDigitsAfterDecimal } from "./utils/parse";
+import {
+  countDigitsAfterDecimal,
+  countSignificantDecimals,
+} from "./utils/parse";
 import ChartContainersWrapper from "./components/ChartContainerWrapper";
 
 async function fetchFutureSymbols(exchange: Exchange): Promise<ITokenData[]> {
@@ -77,7 +80,10 @@ async function fetchSpotSymbols(exchange: Exchange): Promise<ITokenData[]> {
 
         return response?.data?.symbols?.map((data) => ({
           symbol: data.symbol,
-          pricePrecision: data.baseAssetPrecision,
+          pricePrecision: countSignificantDecimals(
+            data.filters.find((data) => data.filterType === "PRICE_FILTER")
+              .tickSize,
+          ),
         }));
       }
       case Exchange.KUCOIN: {
@@ -107,6 +113,26 @@ async function fetchSpotSymbols(exchange: Exchange): Promise<ITokenData[]> {
   }
 }
 
+// async function kucoinFetchBulletToken(): Promise<{
+//   token: string;
+//   instanceServers: Array<{ endpoint: string }>;
+// }> {
+//   const bulletConfig = await baseDataProviderService.send<{
+//     data: {
+//       token: string;
+//       instanceServers: Array<{ endpoint: string }>;
+//     };
+//   }>({
+//     baseUrl: KucoinBaseUrl.FUTURE,
+//     resource: KucoinPaths.BULLET_PUBLIC,
+//     params: {
+//       method: "POST",
+//     },
+//   });
+//
+//   return bulletConfig?.data;
+// }
+
 export default async function Page() {
   const [
     binanceFutureTokenDatas,
@@ -119,6 +145,8 @@ export default async function Page() {
     fetchFutureSymbols(Exchange.KUCOIN),
     fetchSpotSymbols(Exchange.KUCOIN),
   ]);
+
+  
 
   const allSymbols: Record<Exchange, Record<ProductType, ITokenData[]>> = {
     Binance: {

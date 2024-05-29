@@ -2,8 +2,8 @@ export class BinanceBaseUrl {
   public static readonly SPOT = "https://api.binance.com";
   public static readonly FUTURE = "https://fapi.binance.com";
 
-  public static readonly SPOT_WS = "wss://stream.binance.com:9443";
-  public static readonly FUTURE_WS = "wss://fstream.binance.com";
+  public static readonly SPOT_WS = "wss://stream.binance.com:9443/stream";
+  public static readonly FUTURE_WS = "wss://fstream.binance.com/stream";
 }
 
 export class BinancePaths {
@@ -39,9 +39,16 @@ export interface FutureSymbolExchangeInfo {
   pricePrecision: number;
 }
 
+export interface SymbolPriceFilter {
+  filterType: "PRICE_FILTER";
+  minPrice: string;
+  maxPrice: string;
+  tickSize: string;
+}
+
 export interface SpotSymbolExchangeInfo {
   symbol: string;
-  baseAssetPrecision: number;
+  filters: SymbolPriceFilter[];
 }
 
 export interface FutureExchangeInfo {

@@ -4,6 +4,7 @@ export class KucoinBaseUrl {
 }
 
 export class KucoinPaths {
+  public static readonly BULLET_PUBLIC = "/api/v1/bullet-public";
   public static readonly SPOT_SYMBOLS = "/api/v2/symbols";
   public static readonly FUTURE_ACTIVE_CONTRACTS = "/api/v1/contracts/active";
 }

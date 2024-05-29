@@ -3,10 +3,11 @@
 import React, { useCallback, useEffect, useState } from "react";
 
 import { Exchange, ProductType } from "@/common";
+import { useChartContext } from "@/context";
+import ChartDataProvider from "@/context/ChartDataProvider";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import { Button, Grid, ThemeProvider, createTheme } from "@mui/material";
 import ChartContainer from "./ChartContainer";
-import { useChartContext } from "@/context";
 
 const theme = createTheme({
   palette: {
@@ -18,32 +19,28 @@ const theme = createTheme({
 
 const ChartContainersWrapper: React.FC = () => {
   const [mounted, setMounted] = useState<boolean>(false);
-
-  const { addSelectSymbol, selectedSymbols, allSymbols } = useChartContext();
+  const { addSelectSymbol, selectedSymbols } = useChartContext();
 
   useEffect(() => {
-    // const savedContainers = localStorage.getItem("chartContainers");
-    //
-    // if (savedContainers) {
-    //   setContainers(JSON.parse(savedContainers));
-    // }
-
     setMounted(true);
   }, []);
 
-  // useEffect(() => {
-  //   if (mounted) {
-  //     localStorage.setItem("chartContainers", JSON.stringify(containers));
-  //   }
-  // }, [containers]);
-
   const handleAddContainer = useCallback(() => {
     addSelectSymbol({
-      exchange: Exchange.BINANCE,
-      productType: ProductType.FUTURE,
-      data: allSymbols[Exchange.BINANCE][ProductType.FUTURE][0],
+      exchange: "",
+      productType: "",
+      data: {
+        symbol: "",
+        pricePrecision: 0,
+      },
     });
   }, [addSelectSymbol]);
+
+  const configs = selectedSymbols.map(({ exchange, productType, data }) => ({
+    exchange: exchange as Exchange,
+    productType: productType as ProductType,
+    symbol: data.symbol,
+  }));
 
   return (
     mounted && (
@@ -57,13 +54,15 @@ const ChartContainersWrapper: React.FC = () => {
         >
           Add Chart
         </Button>
-        <Grid container spacing={2} justifyContent="center" sx={{ mb: 10 }}>
-          {selectedSymbols.map((_, index) => (
-            <Grid key={index} item md={12} lg={6}>
-              <ChartContainer index={index} />
-            </Grid>
-          ))}
-        </Grid>
+        <ChartDataProvider configs={configs}>
+          <Grid container spacing={2} justifyContent="center" sx={{ mb: 10 }}>
+            {selectedSymbols.map((_, index) => (
+              <Grid key={index} item md={12} lg={6}>
+                <ChartContainer index={index} />
+              </Grid>
+            ))}
+          </Grid>
+        </ChartDataProvider>
       </ThemeProvider>
     )
   );
