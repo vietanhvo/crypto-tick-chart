@@ -1,77 +1,70 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
-import { Box, Button, Grid } from "@mui/material";
+import { Exchange, ProductType } from "@/common";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
+import { Button, Grid, ThemeProvider, createTheme } from "@mui/material";
 import ChartContainer from "./ChartContainer";
+import { useChartContext } from "@/context";
 
-interface IChartContainersWrapperProps {
-  symbols: string[];
-}
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: "#AF5F5F",
+    },
+  },
+});
 
-interface ChartContainerItem {
-  id: number;
-  symbols: string[];
-}
-
-const ChartContainersWrapper: React.FC<IChartContainersWrapperProps> = ({
-  symbols,
-}) => {
+const ChartContainersWrapper: React.FC = () => {
   const [mounted, setMounted] = useState<boolean>(false);
-  const [containers, setContainers] = useState<ChartContainerItem[]>([
-    { id: 1, symbols },
-  ]);
+
+  const { addSelectSymbol, selectedSymbols, allSymbols } = useChartContext();
 
   useEffect(() => {
-    const savedContainers = localStorage.getItem("chartContainers");
-
-    if (savedContainers) {
-      setContainers(
-        Array.from({ length: parseInt(savedContainers) }, (_, index) => ({
-          id: ++index,
-          symbols,
-        })),
-      );
-    }
+    // const savedContainers = localStorage.getItem("chartContainers");
+    //
+    // if (savedContainers) {
+    //   setContainers(JSON.parse(savedContainers));
+    // }
 
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (mounted) {
-      localStorage.setItem("chartContainers", `${containers.length}`);
-    }
-  }, [containers]);
+  // useEffect(() => {
+  //   if (mounted) {
+  //     localStorage.setItem("chartContainers", JSON.stringify(containers));
+  //   }
+  // }, [containers]);
 
-  const handleAddContainer = () => {
-    setContainers([...containers, { id: containers.length, symbols }]);
-  };
-
-  const handleRemoveContainer = (id: number) => {
-    setContainers(containers.filter((container) => container.id !== id));
-  };
+  const handleAddContainer = useCallback(() => {
+    addSelectSymbol({
+      exchange: Exchange.BINANCE,
+      productType: ProductType.FUTURE,
+      data: allSymbols[Exchange.BINANCE][ProductType.FUTURE][0],
+    });
+  }, [addSelectSymbol]);
 
   return (
     mounted && (
-      <Box sx={{ padding: 2 }}>
+      <ThemeProvider theme={theme}>
         <Button
-          variant="contained"
           onClick={handleAddContainer}
-          sx={{ marginY: 2 }}
+          variant="contained"
+          size="large"
+          sx={{ position: "fixed", bottom: 18, right: 18, zIndex: 9999 }}
+          startIcon={<AddCircleIcon />}
         >
           Add Chart
         </Button>
-        <Grid container spacing={2} justifyContent="center">
-          {containers.map(({ id, symbols }) => (
-            <ChartContainer
-              key={id}
-              id={id}
-              initialSymbols={symbols}
-              onRemove={handleRemoveContainer}
-            />
+        <Grid container spacing={2} justifyContent="center" sx={{ mb: 10 }}>
+          {selectedSymbols.map((_, index) => (
+            <Grid key={index} item md={12} lg={6}>
+              <ChartContainer index={index} />
+            </Grid>
           ))}
         </Grid>
-      </Box>
+      </ThemeProvider>
     )
   );
 };

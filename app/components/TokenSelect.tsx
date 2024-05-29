@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 
+import { useChartContext } from "@/context";
 import {
-  Box,
-  CircularProgress,
   FormControl,
   InputLabel,
   MenuItem,
@@ -13,55 +12,44 @@ import {
 } from "@mui/material";
 
 interface TokenSelectProps {
-  symbols: string[];
-  storageKey: string;
-  onSelect: (symbol: string) => void;
+  index: number;
 }
 
-const TokenSelect: React.FC<TokenSelectProps> = ({
-  symbols,
-  onSelect,
-  storageKey,
-}) => {
-  const [selectedSymbol, setSelectedSymbol] = useState<string>("");
+const TokenSelect: React.FC<TokenSelectProps> = ({ index }) => {
+  const { allSymbols, selectedSymbols, setSelectedSymbols } = useChartContext();
 
-  useEffect(() => {
-    onSelect(selectedSymbol);
-  }, [selectedSymbol, onSelect]);
-
-  useEffect(() => {
-    const savedSymbol = localStorage.getItem(storageKey);
-    if (savedSymbol) {
-      setSelectedSymbol(savedSymbol);
-    }
-  }, [storageKey, onSelect]);
+  const { exchange, productType } = selectedSymbols[index];
+  const symbolsList = allSymbols[exchange][productType];
 
   const handleChange = (event: SelectChangeEvent<string>) => {
     const symbol = event.target.value as string;
-    setSelectedSymbol(symbol);
+    setSelectedSymbols((prev) => {
+      const updatedSymbols = [...prev];
+
+      updatedSymbols[index].data = symbolsList.find(
+        (data) => data.symbol === symbol,
+      );
+      return updatedSymbols;
+    });
   };
 
-  if (symbols.length === 0) return <CircularProgress />;
-
   return (
-    <Box>
-      <FormControl fullWidth sx={{ mb: 4 }}>
-        <InputLabel id="token-select-label">Token</InputLabel>
-        <Select
-          labelId="token-select-label"
-          id="token-select"
-          value={selectedSymbol}
-          label="Token"
-          onChange={handleChange}
-        >
-          {symbols.map((symbol) => (
-            <MenuItem key={symbol} value={symbol}>
-              {symbol}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    </Box>
+    <FormControl fullWidth size="small">
+      <InputLabel id="token-select-label">Token</InputLabel>
+      <Select
+        labelId="token-select-label"
+        id="token-select"
+        value={selectedSymbols[index].data.symbol}
+        label="Token"
+        onChange={handleChange}
+      >
+        {symbolsList?.map(({ symbol }) => (
+          <MenuItem key={symbol} value={symbol}>
+            {symbol}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
   );
 };
 

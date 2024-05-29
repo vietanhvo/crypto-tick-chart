@@ -1,64 +1,52 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 
-import { Box, Button, Grid } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import { Grid, IconButton } from "@mui/material";
 import ChartComponent from "./ChartComponent";
 import TokenSelect from "./TokenSelect";
+import { useChartContext } from "@/context";
+import ExchangeSelect from "./ExchangeSelect";
+import ProductSelect from "./ProductSelect";
 
 interface IChartContainerProps {
-  id: number;
-  initialSymbols: string[];
-  onRemove: (id: number) => void;
+  index: number;
 }
 
-const ChartContainer: React.FC<IChartContainerProps> = ({
-  id,
-  initialSymbols,
-  onRemove,
-}) => {
-  const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
-
-  useEffect(() => {
-    const savedSymbol = localStorage.getItem(`selectedSymbol-${id}`);
-    if (savedSymbol) {
-      setSelectedSymbol(savedSymbol);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    if (selectedSymbol) {
-      localStorage.setItem(`selectedSymbol-${id}`, selectedSymbol);
-    }
-  }, [selectedSymbol, id]);
+const ChartContainer: React.FC<IChartContainerProps> = ({ index }) => {
+  const { removeSelectSymbol } = useChartContext();
 
   return (
-    <Grid item xs={12} sm={12} md={6}>
-      <Box
-        sx={{
-          marginBottom: 4,
-          padding: 2,
-          border: "1px solid gray",
-          borderRadius: 1,
-        }}
-      >
-        <TokenSelect
-          symbols={initialSymbols}
-          onSelect={setSelectedSymbol}
-          storageKey={`selectedSymbol-${id}`}
-        />
-        <Box sx={{ width: "100%" }}>
-          <ChartComponent symbol={selectedSymbol} />
-        </Box>
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={() => onRemove(id)}
-          sx={{ mt: 2 }}
-        >
-          Delete
-        </Button>
-      </Box>
+    <Grid
+      container
+      sx={{
+        p: 2,
+        pb: 0,
+        border: "1px solid gray",
+        borderRadius: 1,
+      }}
+      rowGap={1}
+    >
+      <Grid item xs={12} spacing={2} container>
+        <Grid item xs>
+          <ExchangeSelect index={index} />
+        </Grid>
+        <Grid item xs>
+          <ProductSelect index={index} />
+        </Grid>
+        <Grid item xs>
+          <TokenSelect index={index} />
+        </Grid>
+        <Grid item xs={false}>
+          <IconButton onClick={() => removeSelectSymbol(index)}>
+            <CloseIcon />
+          </IconButton>
+        </Grid>
+      </Grid>
+      <Grid item xs={12}>
+        <ChartComponent index={index} />
+      </Grid>
     </Grid>
   );
 };

@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 
-import useBinanceFuturesSocket from "@/hooks/useBinanceFutureSocket";
 import {
   createChart,
   IChartApi,
@@ -10,12 +9,14 @@ import {
   LineData,
   UTCTimestamp,
 } from "lightweight-charts";
+import { Exchange, ProductType } from "@/common";
+import { useChartContext } from "@/context";
+import useChartSocket from "@/hooks/useChartSocket";
 
 const options = {
   height: 300,
   layout: {
     textColor: "#d1d4dc",
-    backgroundColor: "#000000",
   },
   rightPriceScale: {
     scaleMargins: {
@@ -37,13 +38,18 @@ const options = {
 
 const initialData: LineData<UTCTimestamp>[] = [];
 
-const ChartComponent: React.FC<{ symbol: string }> = ({ symbol }) => {
-  const [_data, setData] = useState<LineData<UTCTimestamp>[]>(initialData);
+const ChartComponent: React.FC<{ index: number }> = ({ index }) => {
+  const { selectedSymbols } = useChartContext();
+  const { exchange, productType, data } = selectedSymbols[index];
+  const { price, timestamp } = useChartSocket(
+    exchange as Exchange,
+    productType as ProductType,
+    data.symbol,
+  );
+
   const chartContainerRef = useRef<HTMLDivElement | null>(null);
   const chartInstanceRef = useRef<IChartApi | null>(null);
   const seriesInstanceRef = useRef<ISeriesApi<"Line"> | null>(null);
-
-  const { timestamp, price } = useBinanceFuturesSocket(symbol);
 
   const resizeChart = useCallback(() => {
     if (chartInstanceRef.current && chartContainerRef.current) {
@@ -57,16 +63,6 @@ const ChartComponent: React.FC<{ symbol: string }> = ({ symbol }) => {
       resizeChart();
     };
 
-    if (chartContainerRef.current && !chartInstanceRef.current) {
-      const chart = createChart(chartContainerRef.current, {
-        ...options,
-        width: chartContainerRef.current.clientWidth,
-      });
-      seriesInstanceRef.current = chart.addLineSeries();
-      seriesInstanceRef.current.setData(initialData);
-      chartInstanceRef.current = chart;
-    }
-
     window.addEventListener("resize", handleResize);
     resizeChart();
 
@@ -76,21 +72,43 @@ const ChartComponent: React.FC<{ symbol: string }> = ({ symbol }) => {
   }, [resizeChart]);
 
   useEffect(() => {
+    if (
+      chartContainerRef.current &&
+      !chartInstanceRef.current &&
+      data.pricePrecision
+    ) {
+      const chart = createChart(chartContainerRef.current, {
+        ...options,
+        width: chartContainerRef.current.clientWidth,
+      });
+      seriesInstanceRef.current = chart.addLineSeries({
+        lineWidth: 1,
+        color: "#AF5F5F",
+        priceFormat: {
+          type: "price",
+          precision: data.pricePrecision,
+          minMove: 1 / Math.pow(10, data.pricePrecision),
+        },
+      });
+      seriesInstanceRef.current.setData(initialData);
+      chartInstanceRef.current = chart;
+    }
+  }, []);
+
+  useEffect(() => {
     if (seriesInstanceRef.current) {
       seriesInstanceRef.current.setData(initialData);
     }
-  }, [symbol]);
+  }, [exchange, productType, data]);
 
   useEffect(() => {
-    if (!symbol || !timestamp || price === null) return;
+    if (!data?.symbol || !timestamp || price === null) return;
 
     if (seriesInstanceRef.current) {
       const newData: LineData<UTCTimestamp> = {
         time: timestamp,
         value: price,
       };
-
-      setData((prevData) => [...prevData, newData]);
 
       if (seriesInstanceRef.current) {
         seriesInstanceRef.current.update(newData);
@@ -101,7 +119,7 @@ const ChartComponent: React.FC<{ symbol: string }> = ({ symbol }) => {
   return (
     <div
       ref={chartContainerRef}
-      style={{ width: "100%", height: "300px" }}
+      style={{ width: "100%", height: options.height }}
     ></div>
   );
 };

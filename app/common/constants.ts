@@ -1,7 +1,9 @@
-export class ExchangeBaseUrl {
-  public static readonly BINANCE = "https://fapi.binance.com";
+export const enum Exchange {
+  BINANCE = "Binance",
+  KUCOIN = "Kucoin",
 }
 
-export class BinancePaths {
-  public static readonly EXCHANGE_INFO = "/fapi/v1/exchangeInfo";
+export const enum ProductType {
+  FUTURE = "Future",
+  SPOT = "Spot",
 }
