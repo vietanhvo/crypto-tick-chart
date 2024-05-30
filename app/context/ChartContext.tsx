@@ -1,10 +1,16 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { Exchange, ITokenData, ProductType } from "@/common";
 
-type TSelectedSymbol = {
+export type TSelectedSymbol = {
   exchange: string;
   productType: string;
   data: ITokenData;
@@ -38,6 +44,7 @@ export const ChartProvider: React.FC<IChartProviderProps> = ({
   const [selectedSymbols, setSelectedSymbols] = useState<
     Array<TSelectedSymbol>
   >([]);
+  const isFirstRender = useRef(true);
 
   const addSelectSymbol = (opts: TSelectedSymbol) => {
     return setSelectedSymbols((prev) => [...prev, opts]);
@@ -71,6 +78,10 @@ export const ChartProvider: React.FC<IChartProviderProps> = ({
   }, []);
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     if (typeof window !== "undefined") {
       localStorage.setItem("selectedSymbols", JSON.stringify(selectedSymbols));
     }

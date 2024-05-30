@@ -88,7 +88,7 @@ const ChartComponent: React.FC<{ index: number }> = ({ index }) => {
       seriesInstanceRef.current.setData(initialData);
       chartInstanceRef.current = chart;
     }
-  }, [data.pricePrecision]);
+  }, [data?.pricePrecision]);
 
   useEffect(() => {
     if (seriesInstanceRef.current) {

@@ -139,6 +139,7 @@ class WebSocketManager {
     if (subscribedSymbols && !subscribedSymbols.has(symbol)) {
       const id = this.getNextId(exchange, type);
       subscribedSymbols.set(symbol, id);
+
       const socket = this.sockets.get(exchange)?.get(type);
       socket?.send(
         JSON.stringify({
@@ -154,7 +155,7 @@ class WebSocketManager {
     const subscribedSymbols = this.subscribedSymbols.get(exchange)?.get(type);
     if (subscribedSymbols && subscribedSymbols.has(symbol)) {
       const id = subscribedSymbols.get(symbol);
-      subscribedSymbols.delete(symbol);
+
       const socket = this.sockets.get(exchange)?.get(type);
       socket?.send(
         JSON.stringify({
@@ -163,6 +164,7 @@ class WebSocketManager {
           id,
         }),
       );
+      subscribedSymbols.delete(symbol);
     }
   }
 
@@ -200,6 +202,7 @@ class WebSocketManager {
       this.onMessageCallbacks.get(exchange).delete(type);
       this.connectionTimestamps.get(exchange).delete(type);
       this.idCounter.get(exchange).delete(type);
+      this.connectedProductTypes.get(exchange).delete(type);
 
       if (this.sockets.get(exchange).size === 0) {
         this.sockets.delete(exchange);

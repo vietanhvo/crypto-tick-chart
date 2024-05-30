@@ -44,33 +44,30 @@ const ChartDataProvider: React.FC<ChartDataProviderConfig> = ({
   children,
 }) => {
   const [chartData, setChartData] = useState<ChartData>({});
-  const subscribedSymbolsRef = useRef<{ [key: string]: Map<string, number> }>(
-    {},
-  );
+  const subscribedSymbolsRef = useRef<{ [key: string]: Set<string> }>({});
   const { selectedSymbols } = useChartContext();
-  const idCounterRef = useRef(1);
 
-  const subscriptionQueue = useRef<(() => void)[]>([]);
+  const subscriptionQueue = useRef<(() => Promise<void>)[]>([]);
   const isProcessingQueue = useRef(false);
 
-  const processSubscriptionQueue = () => {
+  const processSubscriptionQueue = async () => {
     if (isProcessingQueue.current || subscriptionQueue.current.length === 0) {
       return;
     }
 
     isProcessingQueue.current = true;
 
-    const processNext = () => {
+    const processNext = async () => {
       if (subscriptionQueue.current.length > 0) {
         const nextSubscription = subscriptionQueue.current.shift();
-        nextSubscription();
-        setTimeout(processNext, 400);
+        await nextSubscription();
+        await processNext();
       } else {
         isProcessingQueue.current = false;
       }
     };
 
-    processNext();
+    await processNext();
   };
 
   const getWebSocketUrl = useCallback(
@@ -98,33 +95,38 @@ const ChartDataProvider: React.FC<ChartDataProviderConfig> = ({
       symbol: string,
     ) => {
       const key = `${exchange}_${productType}`;
-      const subscribedSymbolsMap =
-        subscribedSymbolsRef.current[key] || new Map();
+      let subscribedSymbolsSet = subscribedSymbolsRef.current[key];
 
-      const subscriptionRequest = () => {
-        if (!subscribedSymbolsMap.has(symbol)) {
-          const id = idCounterRef.current++;
+      if (!subscribedSymbolsSet) {
+        subscribedSymbolsSet = new Set();
+        subscribedSymbolsRef.current[key] = subscribedSymbolsSet;
+      }
 
-          if (!wsManager.isConnected(exchange, productType)) {
-            const url = getWebSocketUrl(exchange, productType);
+      const subscriptionRequest = async () => {
+        if (!subscribedSymbolsSet.has(symbol)) {
+          await new Promise<void>((resolve) => {
+            if (!wsManager.isConnected(exchange, productType)) {
+              const url = getWebSocketUrl(exchange, productType);
 
-            wsManager.connect(exchange, productType, url, () => {
+              wsManager.connect(exchange, productType, url, () => {
+                wsManager.subscribe(
+                  exchange,
+                  productType,
+                  streamAggTradeSymbolParser(symbol),
+                );
+                resolve();
+              });
+            } else {
               wsManager.subscribe(
                 exchange,
                 productType,
                 streamAggTradeSymbolParser(symbol),
               );
-            });
-          } else {
-            wsManager.subscribe(
-              exchange,
-              productType,
-              streamAggTradeSymbolParser(symbol),
-            );
-          }
+              resolve();
+            }
+          });
 
-          subscribedSymbolsMap.set(symbol, id);
-          subscribedSymbolsRef.current[key] = subscribedSymbolsMap;
+          subscribedSymbolsSet.add(symbol);
 
           const handleMessage = (data: any) => {
             const { stream, data: messageData } = data;
@@ -154,14 +156,19 @@ const ChartDataProvider: React.FC<ChartDataProviderConfig> = ({
       symbol: string,
     ) => {
       const key = `${exchange}_${productType}`;
-      const subscribedSymbolsMap = subscribedSymbolsRef.current[key];
+      const subscribedSymbolsSet = subscribedSymbolsRef.current[key];
 
-      if (subscribedSymbolsMap && subscribedSymbolsMap.has(symbol)) {
-        wsManager.unsubscribe(exchange, productType, symbol);
-        subscribedSymbolsMap.delete(symbol);
+      if (subscribedSymbolsSet && subscribedSymbolsSet.has(symbol)) {
+        wsManager.unsubscribe(
+          exchange,
+          productType,
+          streamAggTradeSymbolParser(symbol),
+        );
+        subscribedSymbolsSet.delete(symbol);
 
-        if (subscribedSymbolsMap.size === 0) {
+        if (subscribedSymbolsSet.size === 0) {
           wsManager.closeConnection(exchange, productType);
+          subscribedSymbolsRef.current[key] = new Set();
         }
       }
     };
@@ -173,9 +180,9 @@ const ChartDataProvider: React.FC<ChartDataProviderConfig> = ({
     }));
 
     const removedSymbols = Object.entries(subscribedSymbolsRef.current).reduce(
-      (acc, [key, symbolMap]) => {
+      (acc, [key, symbolSet]) => {
         const [exchange, productType] = key.split("_");
-        const removedSymbolsForKey = Array.from(symbolMap.keys()).filter(
+        const removedSymbolsForKey = Array.from(symbolSet).filter(
           (symbol) =>
             !currentSymbols.some(
               (config) =>

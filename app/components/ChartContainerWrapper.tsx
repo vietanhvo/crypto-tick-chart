@@ -39,7 +39,7 @@ const ChartContainersWrapper: React.FC = () => {
   const configs = selectedSymbols.map(({ exchange, productType, data }) => ({
     exchange: exchange as Exchange,
     productType: productType as ProductType,
-    symbol: data.symbol,
+    symbol: data?.symbol,
   }));
 
   return (
