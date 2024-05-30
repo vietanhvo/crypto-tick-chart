@@ -67,16 +67,21 @@ const ChartComponent: React.FC<{ index: number }> = ({ index }) => {
   }, [resizeChart]);
 
   useEffect(() => {
-    if (
-      chartContainerRef.current &&
-      !chartInstanceRef.current &&
-      data.pricePrecision
-    ) {
-      const chart = createChart(chartContainerRef.current, {
-        ...options,
-        width: chartContainerRef.current.clientWidth,
-      });
-      seriesInstanceRef.current = chart.addLineSeries({
+    const chart = createChart(chartContainerRef.current, {
+      ...options,
+      width: chartContainerRef.current.clientWidth,
+    });
+
+    chartInstanceRef.current = chart;
+  }, []);
+
+  useEffect(() => {
+    if (data?.pricePrecision) {
+      if (seriesInstanceRef.current) {
+        chartInstanceRef.current?.removeSeries(seriesInstanceRef.current);
+      }
+
+      seriesInstanceRef.current = chartInstanceRef.current.addLineSeries({
         lineWidth: 1,
         color: "#AF5F5F",
         priceFormat: {
@@ -86,7 +91,6 @@ const ChartComponent: React.FC<{ index: number }> = ({ index }) => {
         },
       });
       seriesInstanceRef.current.setData(initialData);
-      chartInstanceRef.current = chart;
     }
   }, [data?.pricePrecision]);
 
@@ -116,7 +120,7 @@ const ChartComponent: React.FC<{ index: number }> = ({ index }) => {
 
       seriesInstanceRef.current.update(newData);
     }
-  }, [chartData, exchange, productType, data.symbol]);
+  }, [chartData, exchange, productType, data?.symbol]);
 
   return (
     <div

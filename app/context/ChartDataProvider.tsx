@@ -150,7 +150,7 @@ const ChartDataProvider: React.FC<ChartDataProviderConfig> = ({
       processSubscriptionQueue();
     };
 
-    const unsubscribeFromSymbol = (
+    const unsubscribeFromSymbol = async (
       exchange: Exchange,
       productType: ProductType,
       symbol: string,
@@ -165,6 +165,8 @@ const ChartDataProvider: React.FC<ChartDataProviderConfig> = ({
           streamAggTradeSymbolParser(symbol),
         );
         subscribedSymbolsSet.delete(symbol);
+
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         if (subscribedSymbolsSet.size === 0) {
           wsManager.closeConnection(exchange, productType);
@@ -213,8 +215,8 @@ const ChartDataProvider: React.FC<ChartDataProviderConfig> = ({
       }
     });
 
-    removedSymbols.forEach(({ exchange, productType, symbol }) => {
-      unsubscribeFromSymbol(
+    removedSymbols.forEach(async ({ exchange, productType, symbol }) => {
+      await unsubscribeFromSymbol(
         exchange as Exchange,
         productType as ProductType,
         symbol,
