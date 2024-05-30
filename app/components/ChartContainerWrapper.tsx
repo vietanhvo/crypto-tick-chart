@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 
-import { Exchange, ProductType } from "@/common";
+import { Exchange, KucoinBulletData, ProductType } from "@/common";
 import { useChartContext } from "@/context";
 import ChartDataProvider from "@/context/ChartDataProvider";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
@@ -17,7 +17,12 @@ const theme = createTheme({
   },
 });
 
-const ChartContainersWrapper: React.FC = () => {
+const ChartContainersWrapper: React.FC<{
+  kucoinBulletData: {
+    [ProductType.SPOT]: KucoinBulletData;
+    [ProductType.FUTURE]: KucoinBulletData;
+  };
+}> = ({ kucoinBulletData }) => {
   const [mounted, setMounted] = useState<boolean>(false);
   const { addSelectSymbol, selectedSymbols } = useChartContext();
 
@@ -54,7 +59,10 @@ const ChartContainersWrapper: React.FC = () => {
         >
           Add Chart
         </Button>
-        <ChartDataProvider configs={configs}>
+        <ChartDataProvider
+          configs={configs}
+          kucoinBulletData={kucoinBulletData}
+        >
           <Grid container spacing={2} justifyContent="center" sx={{ mb: 10 }}>
             {selectedSymbols.map((_, index) => (
               <Grid key={index} item md={12} lg={6}>

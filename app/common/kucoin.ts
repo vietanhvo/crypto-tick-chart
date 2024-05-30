@@ -19,3 +19,11 @@ export interface KucoinFutureActiveContract {
   symbol: string;
   indexPriceTickSize: number;
 }
+
+export interface KucoinBulletData {
+  token: string;
+  instanceServers: Array<{
+    endpoint: string;
+    pingInterval: number;
+  }>;
+}

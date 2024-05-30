@@ -5,7 +5,7 @@ import {
 } from "@mt/next-infra";
 
 const baseDataProviderService = container.resolve<IBaseRestRequestService>(
-  BindingKeys.NEXT_DATA_PROVIDER_PROVIDER,
+  BindingKeys.NEXT_DATA_PROVIDER,
 );
 
 export default baseDataProviderService;

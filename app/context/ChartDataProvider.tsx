@@ -1,8 +1,3 @@
-import { BinanceBaseUrl, Exchange, ProductType } from "@/common";
-import WebSocketManager from "@/lib/WebSocketManager";
-import { streamAggTradeSymbolParser } from "@/utils/binance-utils";
-import { timeToLocal } from "@/utils/timezone";
-import { UTCTimestamp } from "lightweight-charts";
 import React, {
   createContext,
   useCallback,
@@ -11,7 +6,19 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useChartContext } from "./ChartContext";
+
+import {
+  BinanceBaseUrl,
+  Exchange,
+  KucoinBulletData,
+  ProductType,
+} from "@/common";
+import { useChartContext } from "@/context";
+import WebSocketManager from "@/lib/WebSocketManager";
+import { streamAggTradeSymbolParser } from "@/utils/binance-utils";
+import { generateId } from "@/utils/kucoin-utils";
+import { timeToLocal } from "@/utils/timezone";
+import { UTCTimestamp } from "lightweight-charts";
 
 type ChartData = {
   [key: string]: { price: number | null; timestamp: UTCTimestamp | null };
@@ -35,12 +42,16 @@ type ChartDataProviderProps = {
 
 type ChartDataProviderConfig = {
   configs: ChartDataProviderProps[];
-  onConnect?: (connect: () => void) => void;
+  kucoinBulletData: {
+    [ProductType.SPOT]: KucoinBulletData;
+    [ProductType.FUTURE]: KucoinBulletData;
+  };
   children: React.ReactNode;
 };
 
 const ChartDataProvider: React.FC<ChartDataProviderConfig> = ({
   configs,
+  kucoinBulletData,
   children,
 }) => {
   const [chartData, setChartData] = useState<ChartData>({});
@@ -78,7 +89,7 @@ const ChartDataProvider: React.FC<ChartDataProviderConfig> = ({
             ? `${BinanceBaseUrl.FUTURE_WS}`
             : `${BinanceBaseUrl.SPOT_WS}`;
         case Exchange.KUCOIN:
-          return "";
+          return `${kucoinBulletData[productType].instanceServers?.[0].endpoint}?token=${kucoinBulletData[productType].token}&connectId=${generateId()}`;
         default:
           return "";
       }
@@ -108,19 +119,32 @@ const ChartDataProvider: React.FC<ChartDataProviderConfig> = ({
             if (!wsManager.isConnected(exchange, productType)) {
               const url = getWebSocketUrl(exchange, productType);
 
-              wsManager.connect(exchange, productType, url, () => {
-                wsManager.subscribe(
-                  exchange,
-                  productType,
-                  streamAggTradeSymbolParser(symbol),
-                );
-                resolve();
-              });
+              wsManager.connect(
+                exchange,
+                productType,
+                url,
+                exchange === Exchange.KUCOIN
+                  ? kucoinBulletData[productType].instanceServers[0]
+                      .pingInterval
+                  : undefined,
+                () => {
+                  wsManager.subscribe(
+                    exchange,
+                    productType,
+                    exchange === Exchange.BINANCE
+                      ? streamAggTradeSymbolParser(symbol)
+                      : symbol,
+                  );
+                  resolve();
+                },
+              );
             } else {
               wsManager.subscribe(
                 exchange,
                 productType,
-                streamAggTradeSymbolParser(symbol),
+                exchange === Exchange.BINANCE
+                  ? streamAggTradeSymbolParser(symbol)
+                  : symbol,
               );
               resolve();
             }
@@ -128,7 +152,7 @@ const ChartDataProvider: React.FC<ChartDataProviderConfig> = ({
 
           subscribedSymbolsSet.add(symbol);
 
-          const handleMessage = (data: any) => {
+          const handleBinanceMessage = (data: any) => {
             const { stream, data: messageData } = data;
             if (stream?.split("@")?.[1] === "aggTrade") {
               const symbolKey = stream.split("@")[0].toLowerCase();
@@ -142,7 +166,34 @@ const ChartDataProvider: React.FC<ChartDataProviderConfig> = ({
             }
           };
 
-          wsManager.onMessage(exchange, productType, handleMessage);
+          const handleKucoinMessage = (data: {
+            subject: string;
+            data: { symbol: string; price: string; ts?: number; time?: string };
+          }) => {
+            const { subject, data: messageData } = data;
+            if (subject === "trade.l3match" || subject === "ticker") {
+              const symbolKey = messageData?.symbol?.toLowerCase();
+              setChartData((prevData) => ({
+                ...prevData,
+                [`${exchange}_${productType}_${symbolKey}`]: {
+                  price: parseFloat(messageData.price),
+                  timestamp: messageData.ts
+                    ? (timeToLocal(messageData.ts / 1000) as UTCTimestamp)
+                    : (timeToLocal(
+                        parseInt(messageData.time) / 1000,
+                      ) as UTCTimestamp),
+                },
+              }));
+            }
+          };
+
+          wsManager.onMessage(
+            exchange,
+            productType,
+            exchange === Exchange.BINANCE
+              ? handleBinanceMessage
+              : handleKucoinMessage,
+          );
         }
       };
 
@@ -162,7 +213,9 @@ const ChartDataProvider: React.FC<ChartDataProviderConfig> = ({
         wsManager.unsubscribe(
           exchange,
           productType,
-          streamAggTradeSymbolParser(symbol),
+          exchange === Exchange.BINANCE
+            ? streamAggTradeSymbolParser(symbol)
+            : symbol,
         );
         subscribedSymbolsSet.delete(symbol);
 

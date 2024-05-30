@@ -101,14 +101,14 @@ const ChartComponent: React.FC<{ index: number }> = ({ index }) => {
   }, [exchange, productType, data]);
 
   useEffect(() => {
+    if (!data?.symbol) {
+      return;
+    }
+
     const currentData =
       chartData[`${exchange}_${productType}_${data.symbol.toLowerCase()}`];
-    if (
-      !data?.symbol ||
-      !currentData ||
-      !currentData.timestamp ||
-      currentData.price === null
-    ) {
+
+    if (!currentData || !currentData.timestamp || currentData.price === null) {
       return;
     }
 

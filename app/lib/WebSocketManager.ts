@@ -35,7 +35,7 @@ class WebSocketManager {
     console.log(
       `Reconnecting WebSocket for exchange: ${exchange}, type: ${type}`,
     );
-    this.connect(exchange, type, url, () => {
+    this.connect(exchange, type, url, 0, () => {
       const subscribedSymbols = this.subscribedSymbols.get(exchange)?.get(type);
       if (subscribedSymbols) {
         subscribedSymbols.forEach((_id, symbol) => {
@@ -52,10 +52,11 @@ class WebSocketManager {
     );
   }
 
-  public connect(
+  public async connect(
     exchange: Exchange,
     type: ProductType,
-    url: string,
+    wsBaseUrl: string,
+    pingPongInterval?: number,
     onOpen?: () => void,
     onClose?: () => void,
   ) {
@@ -67,17 +68,17 @@ class WebSocketManager {
 
     const exchangeSockets = this.sockets.get(exchange);
     if (!exchangeSockets.has(type)) {
-      const socket = new WebSocket(url);
+      const socket = new WebSocket(wsBaseUrl);
 
       // Send ping-pong
       let pingInterval: NodeJS.Timeout;
 
-      if (SocketConfiguration[exchange]?.pingPongInterval) {
+      if (pingPongInterval) {
         pingInterval = setInterval(() => {
           if (socket.readyState === WebSocket.OPEN) {
-            socket.send("ping");
+            socket.send(JSON.stringify({ id: Date.now(), type: "ping" }));
           }
-        }, SocketConfiguration[exchange].pingPongInterval);
+        }, pingPongInterval);
       }
 
       socket.onopen = () => {
@@ -118,7 +119,7 @@ class WebSocketManager {
             SocketConfiguration[exchange].connectionDuration
         ) {
           setTimeout(() => {
-            this.reconnect(exchange, type, url);
+            this.reconnect(exchange, type, wsBaseUrl);
           }, 5000);
         }
       };
@@ -141,13 +142,29 @@ class WebSocketManager {
       subscribedSymbols.set(symbol, id);
 
       const socket = this.sockets.get(exchange)?.get(type);
-      socket?.send(
-        JSON.stringify({
-          method: "SUBSCRIBE",
-          params: [symbol],
-          id,
-        }),
-      );
+      let message: string;
+      switch (exchange) {
+        case Exchange.BINANCE:
+          message = JSON.stringify({
+            method: "SUBSCRIBE",
+            params: [symbol],
+            id,
+          });
+          break;
+        case Exchange.KUCOIN:
+          message = JSON.stringify({
+            id,
+            type: "subscribe",
+            topic:
+              type === ProductType.SPOT
+                ? `/market/match:${symbol}`
+                : `/contractMarket/ticker:${symbol}`,
+            privateChannel: false,
+            response: true,
+          });
+          break;
+      }
+      socket?.send(message);
     }
   }
 
@@ -157,13 +174,30 @@ class WebSocketManager {
       const id = subscribedSymbols.get(symbol);
 
       const socket = this.sockets.get(exchange)?.get(type);
-      socket?.send(
-        JSON.stringify({
-          method: "UNSUBSCRIBE",
-          params: [symbol],
-          id,
-        }),
-      );
+      let message: string;
+      switch (exchange) {
+        case Exchange.BINANCE:
+          message = JSON.stringify({
+            method: "UNSUBSCRIBE",
+            params: [symbol],
+            id,
+          });
+          break;
+        case Exchange.KUCOIN:
+          message = JSON.stringify({
+            id,
+            type: "unsubscribe",
+            topic:
+              type === ProductType.SPOT
+                ? `/market/match:${symbol}`
+                : `/contractMarket/ticker:${symbol}`,
+            privateChannel: false,
+            response: false,
+          });
+          break;
+      }
+
+      socket?.send(message);
       subscribedSymbols.delete(symbol);
     }
   }

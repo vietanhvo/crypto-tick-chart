@@ -5,6 +5,7 @@ import {
   FutureExchangeInfo,
   ITokenData,
   KucoinBaseUrl,
+  KucoinBulletData,
   KucoinFutureActiveContract,
   KucoinPaths,
   KucoinSpotSymbol,
@@ -113,25 +114,33 @@ async function fetchSpotSymbols(exchange: Exchange): Promise<ITokenData[]> {
   }
 }
 
-// async function kucoinFetchBulletToken(): Promise<{
-//   token: string;
-//   instanceServers: Array<{ endpoint: string }>;
-// }> {
-//   const bulletConfig = await baseDataProviderService.send<{
-//     data: {
-//       token: string;
-//       instanceServers: Array<{ endpoint: string }>;
-//     };
-//   }>({
-//     baseUrl: KucoinBaseUrl.FUTURE,
-//     resource: KucoinPaths.BULLET_PUBLIC,
-//     params: {
-//       method: "POST",
-//     },
-//   });
-//
-//   return bulletConfig?.data;
-// }
+async function fetchKucoinFutureBulletData(): Promise<KucoinBulletData> {
+  const bulletConfig = await baseDataProviderService.send<{
+    data: { data: KucoinBulletData };
+  }>({
+    baseUrl: KucoinBaseUrl.FUTURE,
+    resource: KucoinPaths.BULLET_PUBLIC,
+    params: {
+      method: "POST",
+    },
+  });
+
+  return bulletConfig?.data?.data;
+}
+
+async function fetchKucoinSpotBulletData(): Promise<KucoinBulletData> {
+  const bulletConfig = await baseDataProviderService.send<{
+    data: { data: KucoinBulletData };
+  }>({
+    baseUrl: KucoinBaseUrl.SPOT,
+    resource: KucoinPaths.BULLET_PUBLIC,
+    params: {
+      method: "POST",
+    },
+  });
+
+  return bulletConfig?.data?.data;
+}
 
 export default async function Page() {
   const [
@@ -139,14 +148,16 @@ export default async function Page() {
     binanceSpotTokenDatas,
     kucoinFutureTokenDatas,
     kucoinSpotTokenDatas,
+    kucoinFutureBulletData,
+    kucoinSpotBulletData,
   ] = await Promise.all([
     fetchFutureSymbols(Exchange.BINANCE),
     fetchSpotSymbols(Exchange.BINANCE),
     fetchFutureSymbols(Exchange.KUCOIN),
     fetchSpotSymbols(Exchange.KUCOIN),
+    fetchKucoinFutureBulletData(),
+    fetchKucoinSpotBulletData(),
   ]);
-
-  
 
   const allSymbols: Record<Exchange, Record<ProductType, ITokenData[]>> = {
     Binance: {
@@ -161,7 +172,12 @@ export default async function Page() {
 
   return (
     <ChartProvider allSymbols={allSymbols}>
-      <ChartContainersWrapper />
+      <ChartContainersWrapper
+        kucoinBulletData={{
+          [ProductType.SPOT]: kucoinSpotBulletData,
+          [ProductType.FUTURE]: kucoinFutureBulletData,
+        }}
+      />
     </ChartProvider>
   );
 }
