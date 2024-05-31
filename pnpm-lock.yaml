@@ -16,7 +16,7 @@ dependencies:
     version: 11.11.5(@emotion/react@11.11.4)(@types/react@18.2.33)(react@18.3.1)
   '@mt/next-infra':
     specifier: github:MINIMAL-TECHNOLOGY/next-infra
-    version: git@github.com+MINIMAL-TECHNOLOGY/next-infra/54b813cba994d5475f8172ef10388365ea6d4c71
+    version: git/github.com+MINIMAL-TECHNOLOGY/next-infra/54b813cba994d5475f8172ef10388365ea6d4c71
   '@mui/icons-material':
     specifier: ^5.15.18
     version: 5.15.19(@mui/material@5.15.19)(@types/react@18.2.33)(react@18.3.1)
@@ -1223,7 +1223,7 @@ packages:
     engines: {node: '>= 6'}
     dev: false
 
-  git@github.com+MINIMAL-TECHNOLOGY/next-infra/54b813cba994d5475f8172ef10388365ea6d4c71:
+  git/github.com+MINIMAL-TECHNOLOGY/next-infra/54b813cba994d5475f8172ef10388365ea6d4c71:
     resolution: {commit: 54b813cba994d5475f8172ef10388365ea6d4c71, repo: git@github.com:MINIMAL-TECHNOLOGY/next-infra.git, type: git}
     name: '@mt/next-infra'
     version: 0.0.1
