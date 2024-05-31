@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  # ----------------------------------------------------------------
+  # SERVER
+  # ----------------------------------------------------------------
+  crypto-tick-chart:
+    container_name: crypto_tick_chart
+    working_dir: /crypto_tick_chart
+    volumes:
+      - .:/crypto_tick_chart
+    image: node:18-slim
+    ports:
+      - 1900:3000
+    command: sh ./start.sh
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "100m"
