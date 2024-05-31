@@ -1,3 +1,5 @@
+apt-get update && apt-get install git
+
 npm install -g pnpm
 
 echo "Install dependencies..."
