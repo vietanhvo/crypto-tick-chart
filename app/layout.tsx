@@ -1,3 +1,12 @@
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Crypto Tick Chart",
+  icons: {
+    icon: ["/icon.jpg"],
+  },
+};
+
 export default function RootLayout({
   children,
 }: {
