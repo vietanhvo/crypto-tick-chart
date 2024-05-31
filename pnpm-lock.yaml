@@ -15,8 +15,8 @@ dependencies:
     specifier: ^11.11.5
     version: 11.11.5(@emotion/react@11.11.4)(@types/react@18.2.33)(react@18.3.1)
   '@mt/next-infra':
-    specifier: github:MINIMAL-TECHNOLOGY/next-infra
-    version: git/github.com+MINIMAL-TECHNOLOGY/next-infra/54b813cba994d5475f8172ef10388365ea6d4c71
+    specifier: https://github.com/MINIMAL-TECHNOLOGY/next-infra
+    version: github.com/MINIMAL-TECHNOLOGY/next-infra/54b813cba994d5475f8172ef10388365ea6d4c71
   '@mui/icons-material':
     specifier: ^5.15.18
     version: 5.15.19(@mui/material@5.15.19)(@types/react@18.2.33)(react@18.3.1)
@@ -26,6 +26,9 @@ dependencies:
   '@tanstack/react-virtual':
     specifier: ^3.5.0
     version: 3.5.0(react-dom@18.3.1)(react@18.3.1)
+  immutable:
+    specifier: ^4.3.6
+    version: 4.3.6
   lightweight-charts:
     specifier: ^4.1.4
     version: 4.1.4
@@ -784,6 +787,10 @@ packages:
       react-is: 16.13.1
     dev: false
 
+  /immutable@4.3.6:
+    resolution: {integrity: sha512-Ju0+lEMyzMVZarkTn/gqRpdqd5dOPaz1mCZ0SH3JV6iFw81PldE/PEB1hWVEA288HPt4WXW8O7AWxB10M+03QQ==}
+    dev: false
+
   /import-fresh@3.3.0:
     resolution: {integrity: sha512-veYYhQa+D1QBKznvhUHxb8faxlrwUnxseDAbAp457E0wLNio2bOSKnjYDhMj+YiAq61xrMGhQk9iXVk5FzgQMw==}
     engines: {node: '>=6'}
@@ -1223,8 +1230,8 @@ packages:
     engines: {node: '>= 6'}
     dev: false
 
-  git/github.com+MINIMAL-TECHNOLOGY/next-infra/54b813cba994d5475f8172ef10388365ea6d4c71:
-    resolution: {commit: 54b813cba994d5475f8172ef10388365ea6d4c71, repo: git@github.com:MINIMAL-TECHNOLOGY/next-infra.git, type: git}
+  github.com/MINIMAL-TECHNOLOGY/next-infra/54b813cba994d5475f8172ef10388365ea6d4c71:
+    resolution: {tarball: https://codeload.github.com/MINIMAL-TECHNOLOGY/next-infra/tar.gz/54b813cba994d5475f8172ef10388365ea6d4c71}
     name: '@mt/next-infra'
     version: 0.0.1
     engines: {node: 18 || 20}

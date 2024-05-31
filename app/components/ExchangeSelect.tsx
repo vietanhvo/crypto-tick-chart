@@ -14,30 +14,29 @@ import { useChartContext } from "@/context";
 import { Exchange } from "@/common";
 
 interface ExchangeSelectProps {
-  index: number;
+  id: string;
 }
 
-const ExchangeSelect: React.FC<ExchangeSelectProps> = ({ index }) => {
-  const { exchanges, selectedSymbols, setSelectedSymbols } = useChartContext();
+const ExchangeSelect: React.FC<ExchangeSelectProps> = ({ id }) => {
+  const { exchanges, selectedSymbolMap, select } = useChartContext();
 
   const handleChange = useCallback(
     (event: SelectChangeEvent<string>) => {
       const exchange = event.target.value as Exchange;
 
-      setSelectedSymbols((prev) => {
-        const updatedSymbols = [...prev];
-        updatedSymbols[index].exchange = exchange;
-
-        updatedSymbols[index].productType = "";
-        updatedSymbols[index].data = {
-          symbol: "",
-          pricePrecision: 0,
-        };
-
-        return updatedSymbols;
+      select({
+        id,
+        data: {
+          exchange,
+          productType: "",
+          data: {
+            symbol: "",
+            pricePrecision: 0,
+          },
+        },
       });
     },
-    [setSelectedSymbols],
+    [select],
   );
 
   if (exchanges.length === 0) return <CircularProgress />;
@@ -48,7 +47,8 @@ const ExchangeSelect: React.FC<ExchangeSelectProps> = ({ index }) => {
       <Select
         labelId="token-select-label"
         id="token-select"
-        value={selectedSymbols[index].exchange}
+        value={selectedSymbolMap.get(id)?.exchange ?? ""}
+        defaultValue=""
         label="Exchange"
         onChange={handleChange}
       >

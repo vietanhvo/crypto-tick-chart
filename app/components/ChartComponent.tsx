@@ -2,6 +2,8 @@
 
 import React, { useCallback, useEffect, useRef } from "react";
 
+import { useChartContext } from "@/context";
+import { useChartData } from "@/context/ChartDataProvider";
 import {
   createChart,
   IChartApi,
@@ -9,8 +11,6 @@ import {
   LineData,
   UTCTimestamp,
 } from "lightweight-charts";
-import { useChartContext } from "@/context";
-import { useChartData } from "@/context/ChartDataProvider";
 
 const options = {
   height: 300,
@@ -37,9 +37,9 @@ const options = {
 
 const initialData: LineData<UTCTimestamp>[] = [];
 
-const ChartComponent: React.FC<{ index: number }> = ({ index }) => {
-  const { selectedSymbols } = useChartContext();
-  const { exchange, productType, data } = selectedSymbols[index];
+const ChartComponent: React.FC<{ id: string }> = ({ id }) => {
+  const { selectedSymbolMap } = useChartContext();
+  const selectedSymbol = selectedSymbolMap.get(id);
   const { chartData } = useChartData();
 
   const chartContainerRef = useRef<HTMLDivElement | null>(null);
@@ -73,10 +73,14 @@ const ChartComponent: React.FC<{ index: number }> = ({ index }) => {
     });
 
     chartInstanceRef.current = chart;
+
+    return () => {
+      chart.remove();
+    };
   }, []);
 
   useEffect(() => {
-    if (data?.pricePrecision) {
+    if (selectedSymbol?.data?.pricePrecision) {
       if (seriesInstanceRef.current) {
         chartInstanceRef.current?.removeSeries(seriesInstanceRef.current);
       }
@@ -86,27 +90,37 @@ const ChartComponent: React.FC<{ index: number }> = ({ index }) => {
         color: "#AF5F5F",
         priceFormat: {
           type: "price",
-          precision: data.pricePrecision,
-          minMove: 1 / Math.pow(10, data.pricePrecision),
+          precision: selectedSymbol.data.pricePrecision,
+          minMove: 1 / Math.pow(10, selectedSymbol.data.pricePrecision),
         },
       });
       seriesInstanceRef.current.setData(initialData);
     }
-  }, [data?.pricePrecision]);
+  }, [selectedSymbol?.data?.pricePrecision]);
 
   useEffect(() => {
     if (seriesInstanceRef.current) {
       seriesInstanceRef.current.setData(initialData);
     }
-  }, [exchange, productType, data]);
+  }, [
+    selectedSymbol?.exchange,
+    selectedSymbol?.productType,
+    selectedSymbol?.data?.symbol,
+  ]);
 
   useEffect(() => {
-    if (!data?.symbol) {
+    if (
+      !selectedSymbol?.data ||
+      !selectedSymbol?.exchange ||
+      !selectedSymbol?.productType
+    ) {
       return;
     }
 
     const currentData =
-      chartData[`${exchange}_${productType}_${data.symbol.toLowerCase()}`];
+      chartData[
+        `${selectedSymbol.exchange}_${selectedSymbol.productType}_${selectedSymbol.data.symbol.toLowerCase()}`
+      ];
 
     if (!currentData || !currentData.timestamp || currentData.price === null) {
       return;
@@ -120,7 +134,7 @@ const ChartComponent: React.FC<{ index: number }> = ({ index }) => {
 
       seriesInstanceRef.current.update(newData);
     }
-  }, [chartData, exchange, productType, data?.symbol]);
+  }, [chartData]);
 
   return (
     <div

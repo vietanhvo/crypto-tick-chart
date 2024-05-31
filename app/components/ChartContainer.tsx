@@ -11,10 +11,10 @@ import ExchangeSelect from "./ExchangeSelect";
 import ProductSelect from "./ProductSelect";
 
 interface IChartContainerProps {
-  index: number;
+  id: string;
 }
 
-const ChartContainer: React.FC<IChartContainerProps> = ({ index }) => {
+const ChartContainer: React.FC<IChartContainerProps> = ({ id }) => {
   const { removeSelectSymbol } = useChartContext();
 
   return (
@@ -30,22 +30,22 @@ const ChartContainer: React.FC<IChartContainerProps> = ({ index }) => {
     >
       <Grid item xs={12} spacing={2} container>
         <Grid item xs>
-          <ExchangeSelect index={index} />
+          <ExchangeSelect id={id} />
         </Grid>
         <Grid item xs>
-          <ProductSelect index={index} />
+          <ProductSelect id={id} />
         </Grid>
         <Grid item xs>
-          <TokenSelect index={index} />
+          <TokenSelect id={id} />
         </Grid>
         <Grid item xs={false}>
-          <IconButton onClick={() => removeSelectSymbol(index)}>
+          <IconButton onClick={() => removeSelectSymbol(id)}>
             <CloseIcon />
           </IconButton>
         </Grid>
       </Grid>
       <Grid item xs={12}>
-        <ChartComponent index={index} />
+        <ChartComponent id={id} />
       </Grid>
     </Grid>
   );

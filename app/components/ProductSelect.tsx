@@ -13,28 +13,25 @@ import {
 } from "@mui/material";
 
 interface ProductSelectProps {
-  index: number;
+  id: string;
 }
 
-const ProductSelect: React.FC<ProductSelectProps> = ({ index }) => {
-  const { exchangeProducts, selectedSymbols, setSelectedSymbols } =
-    useChartContext();
+const ProductSelect: React.FC<ProductSelectProps> = ({ id }) => {
+  const { exchangeProducts, selectedSymbolMap, select } = useChartContext();
 
-  const { exchange, productType } = selectedSymbols[index];
-  const productsList = exchangeProducts[exchange];
+  const productsList = exchangeProducts[selectedSymbolMap.get(id)?.exchange];
 
   const handleChange = (event: SelectChangeEvent<string>) => {
     const product = event.target.value as ProductType;
-    setSelectedSymbols((prev) => {
-      const updatedSymbols = [...prev];
-
-      updatedSymbols[index].productType = product;
-      updatedSymbols[index].data = {
-        symbol: "",
-        pricePrecision: 0,
-      };
-
-      return updatedSymbols;
+    select({
+      id,
+      data: {
+        productType: product,
+        data: {
+          symbol: "",
+          pricePrecision: 0,
+        },
+      },
     });
   };
 
@@ -44,7 +41,7 @@ const ProductSelect: React.FC<ProductSelectProps> = ({ index }) => {
       <Select
         labelId="token-select-label"
         id="token-select"
-        value={productType}
+        value={selectedSymbolMap.get(id)?.productType ?? ""}
         label="Product"
         onChange={handleChange}
       >

@@ -64,9 +64,9 @@ const ChartContainersWrapper: React.FC<{
           kucoinBulletData={kucoinBulletData}
         >
           <Grid container spacing={2} justifyContent="center" sx={{ mb: 10 }}>
-            {selectedSymbols.map((_, index) => (
-              <Grid key={index} item md={12} lg={6}>
-                <ChartContainer index={index} />
+            {selectedSymbols.map((symbol) => (
+              <Grid key={symbol.id} item md={12} lg={6}>
+                <ChartContainer id={symbol.id} />
               </Grid>
             ))}
           </Grid>

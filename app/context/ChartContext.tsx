@@ -2,6 +2,7 @@
 
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -9,8 +10,11 @@ import React, {
 } from "react";
 
 import { Exchange, ITokenData, ProductType } from "@/common";
+import { Map } from "immutable";
+import { generateUniqueId } from "@/utils/genarator";
 
 export type TSelectedSymbol = {
+  id: string;
   exchange: string;
   productType: string;
   data: ITokenData;
@@ -22,12 +26,14 @@ interface IChartContextProps {
   allSymbols: Record<string, Record<string, ITokenData[]>>;
 
   selectedSymbols: Array<TSelectedSymbol>;
+  selectedSymbolMap: Map<string, Omit<TSelectedSymbol, "id">>;
 
-  setSelectedSymbols: React.Dispatch<
-    React.SetStateAction<Array<TSelectedSymbol>>
-  >;
-  addSelectSymbol: (opts: TSelectedSymbol) => void;
-  removeSelectSymbol: (opts: number) => void;
+  select: (opts: {
+    id: string;
+    data: Partial<Omit<TSelectedSymbol, "id">>;
+  }) => void;
+  addSelectSymbol: (opts: Omit<TSelectedSymbol, "id">) => void;
+  removeSelectSymbol: (opts: string) => void;
 }
 
 const ChartContext = createContext<IChartContextProps | undefined>(undefined);
@@ -44,19 +50,41 @@ export const ChartProvider: React.FC<IChartProviderProps> = ({
   const [selectedSymbols, setSelectedSymbols] = useState<
     Array<TSelectedSymbol>
   >([]);
+  const [selectedSymbolMap, setSelectedSymbolMap] =
+    useState<Map<string, Omit<TSelectedSymbol, "id">>>(Map());
+
   const isFirstRender = useRef(true);
 
-  const addSelectSymbol = (opts: TSelectedSymbol) => {
-    return setSelectedSymbols((prev) => [...prev, opts]);
+  const addSelectSymbol = (opts: Omit<TSelectedSymbol, "id">) => {
+    const id = generateUniqueId();
+    setSelectedSymbols((prev) => [...prev, { ...opts, id }]);
+    setSelectedSymbolMap((prev) => Map(prev).set(id, opts));
   };
 
-  const removeSelectSymbol = (index: number) => {
-    return setSelectedSymbols((prev) => {
-      const updatedSymbols = [...prev];
-      updatedSymbols.splice(index, 1);
-      return updatedSymbols;
-    });
+  const removeSelectSymbol = (id: string) => {
+    setSelectedSymbols((prev) => prev.filter((symbol) => symbol.id !== id));
+    setSelectedSymbolMap((prev) => Map(prev).delete(id));
   };
+
+  const select = useCallback(
+    (props: { id: string; data: Partial<Omit<TSelectedSymbol, "id">> }) => {
+      const { id, data } = props;
+      setSelectedSymbols((prevSymbols) => {
+        return prevSymbols.map((symbol) => {
+          if (symbol.id === id) {
+            return { ...symbol, ...data };
+          }
+          return symbol;
+        });
+      });
+
+      setSelectedSymbolMap((prevMap) => {
+        const updatedMap = Map(prevMap);
+        return updatedMap.set(id, { ...updatedMap.get(id), ...data });
+      });
+    },
+    [setSelectedSymbols, setSelectedSymbolMap],
+  );
 
   const getExchangeProducts = (
     props: Record<string, Record<string, ITokenData[]>>,
@@ -72,7 +100,18 @@ export const ChartProvider: React.FC<IChartProviderProps> = ({
     if (typeof window !== "undefined") {
       const storedSymbols = localStorage.getItem("selectedSymbols");
       if (storedSymbols) {
-        setSelectedSymbols(JSON.parse(storedSymbols));
+        const parsedSymbols = JSON.parse(
+          storedSymbols,
+        ) as Array<TSelectedSymbol>;
+
+        setSelectedSymbols(parsedSymbols);
+
+        setSelectedSymbolMap(
+          parsedSymbols.reduce((map, symbol) => {
+            const { id, ...rest } = symbol;
+            return map.set(id, rest);
+          }, Map<string, Omit<TSelectedSymbol, "id">>()),
+        );
       }
     }
   }, []);
@@ -94,8 +133,9 @@ export const ChartProvider: React.FC<IChartProviderProps> = ({
         exchangeProducts: getExchangeProducts(allSymbols),
         allSymbols,
         selectedSymbols,
+        selectedSymbolMap,
 
-        setSelectedSymbols,
+        select,
         addSelectSymbol,
         removeSelectSymbol,
       }}
