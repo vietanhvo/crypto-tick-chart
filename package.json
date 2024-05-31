@@ -9,7 +9,7 @@
     "@abraham/reflection": "^0.12.0",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
-    "@mt/next-infra": "https://github.com/MINIMAL-TECHNOLOGY/next-infra",
+    "@mt/next-infra": "github:MINIMAL-TECHNOLOGY/next-infra",
     "@mui/icons-material": "^5.15.18",
     "@mui/material": "^5.15.18",
     "@tanstack/react-virtual": "^3.5.0",
