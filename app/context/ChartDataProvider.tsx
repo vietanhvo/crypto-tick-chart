@@ -178,9 +178,9 @@ const ChartDataProvider: React.FC<ChartDataProviderConfig> = ({
                 [`${exchange}_${productType}_${symbolKey}`]: {
                   price: parseFloat(messageData.price),
                   timestamp: messageData.ts
-                    ? (timeToLocal(messageData.ts / 1000) as UTCTimestamp)
+                    ? (timeToLocal(messageData.ts / 10**6) as UTCTimestamp)
                     : (timeToLocal(
-                        parseInt(messageData.time) / 1000,
+                        parseInt(messageData.time) / 10**6,
                       ) as UTCTimestamp),
                 },
               }));
