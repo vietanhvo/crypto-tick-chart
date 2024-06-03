@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React from "react";
 
 import { useChartContext } from "@/context";
 import { FormControl, TextField } from "@mui/material";
@@ -18,7 +18,7 @@ const TokenSelect: React.FC<TokenSelectProps> = ({ id }) => {
   const symbolsList =
     allSymbols?.[selectedSymbol?.exchange]?.[selectedSymbol?.productType] ?? [];
 
-  const handleChange = useCallback((newValue: string) => {
+  const handleChange = (newValue: string) => {
     const symbol = newValue;
     select({
       id,
@@ -26,7 +26,7 @@ const TokenSelect: React.FC<TokenSelectProps> = ({ id }) => {
         data: symbolsList.find((data) => data.symbol === symbol),
       },
     });
-  }, []);
+  };
 
   return (
     <FormControl fullWidth size="small">
