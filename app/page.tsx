@@ -136,6 +136,7 @@ async function fetchKucoinSpotBulletData(): Promise<KucoinBulletData> {
     resource: KucoinPaths.BULLET_PUBLIC,
     params: {
       method: "POST",
+      cache: "no-cache",
     },
   });
 

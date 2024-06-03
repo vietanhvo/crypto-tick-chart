@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useCallback } from "react";
 
 import { ProductType } from "@/common";
 import { useChartContext } from "@/context";
@@ -21,7 +21,7 @@ const ProductSelect: React.FC<ProductSelectProps> = ({ id }) => {
 
   const productsList = exchangeProducts[selectedSymbolMap.get(id)?.exchange];
 
-  const handleChange = (event: SelectChangeEvent<string>) => {
+  const handleChange = useCallback((event: SelectChangeEvent<string>) => {
     const product = event.target.value as ProductType;
     select({
       id,
@@ -33,7 +33,7 @@ const ProductSelect: React.FC<ProductSelectProps> = ({ id }) => {
         },
       },
     });
-  };
+  }, []);
 
   return (
     <FormControl fullWidth size="small">

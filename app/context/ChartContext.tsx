@@ -55,16 +55,22 @@ export const ChartProvider: React.FC<IChartProviderProps> = ({
 
   const isFirstRender = useRef(true);
 
-  const addSelectSymbol = (opts: Omit<TSelectedSymbol, "id">) => {
-    const id = generateUniqueId();
-    setSelectedSymbols((prev) => [...prev, { ...opts, id }]);
-    setSelectedSymbolMap((prev) => Map(prev).set(id, opts));
-  };
+  const addSelectSymbol = useCallback(
+    (opts: Omit<TSelectedSymbol, "id">) => {
+      const id = generateUniqueId();
+      setSelectedSymbols((prev) => [...prev, { ...opts, id }]);
+      setSelectedSymbolMap((prev) => Map(prev).set(id, opts));
+    },
+    [generateUniqueId, setSelectedSymbols, setSelectedSymbolMap],
+  );
 
-  const removeSelectSymbol = (id: string) => {
-    setSelectedSymbols((prev) => prev.filter((symbol) => symbol.id !== id));
-    setSelectedSymbolMap((prev) => Map(prev).delete(id));
-  };
+  const removeSelectSymbol = useCallback(
+    (id: string) => {
+      setSelectedSymbols((prev) => prev.filter((symbol) => symbol.id !== id));
+      setSelectedSymbolMap((prev) => Map(prev).delete(id));
+    },
+    [setSelectedSymbols, setSelectedSymbolMap],
+  );
 
   const select = useCallback(
     (props: { id: string; data: Partial<Omit<TSelectedSymbol, "id">> }) => {
@@ -86,15 +92,16 @@ export const ChartProvider: React.FC<IChartProviderProps> = ({
     [setSelectedSymbols, setSelectedSymbolMap],
   );
 
-  const getExchangeProducts = (
-    props: Record<string, Record<string, ITokenData[]>>,
-  ) => {
-    const exchangeProducts: Record<string, string[]> = {};
-    for (const exchange in props) {
-      exchangeProducts[exchange] = Object.keys(props[exchange]);
-    }
-    return exchangeProducts;
-  };
+  const getExchangeProducts = useCallback(
+    (props: Record<string, Record<string, ITokenData[]>>) => {
+      const exchangeProducts: Record<string, string[]> = {};
+      for (const exchange in props) {
+        exchangeProducts[exchange] = Object.keys(props[exchange]);
+      }
+      return exchangeProducts;
+    },
+    [],
+  );
 
   useEffect(() => {
     if (typeof window !== "undefined") {

@@ -16,7 +16,7 @@ dependencies:
     version: 11.11.5(@emotion/react@11.11.4)(@types/react@18.2.33)(react@18.3.1)
   '@mt/next-infra':
     specifier: github:MINIMAL-TECHNOLOGY/next-infra
-    version: github.com/MINIMAL-TECHNOLOGY/next-infra/54b813cba994d5475f8172ef10388365ea6d4c71
+    version: github.com/MINIMAL-TECHNOLOGY/next-infra/894a852f124b3b01d844cdce02152252aa862b83
   '@mui/icons-material':
     specifier: ^5.15.18
     version: 5.15.19(@mui/material@5.15.19)(@types/react@18.2.33)(react@18.3.1)
@@ -637,8 +637,8 @@ packages:
     engines: {node: '>=6'}
     dev: false
 
-  /caniuse-lite@1.0.30001625:
-    resolution: {integrity: sha512-4KE9N2gcRH+HQhpeiRZXd+1niLB/XNLAhSy4z7fI8EzcbcPoAqjNInxVHTiTwWfTIV4w096XG8OtCOCQQKPv3w==}
+  /caniuse-lite@1.0.30001626:
+    resolution: {integrity: sha512-JRW7kAH8PFJzoPCJhLSHgDgKg5348hsQ68aqb+slnzuB5QFERv846oA/mRChmlLAOdEDeOkRn3ynb1gSFnjt3w==}
     dev: false
 
   /chalk@2.4.2:
@@ -914,7 +914,7 @@ packages:
       '@next/env': 14.2.3
       '@swc/helpers': 0.5.5
       busboy: 1.6.0
-      caniuse-lite: 1.0.30001625
+      caniuse-lite: 1.0.30001626
       graceful-fs: 4.2.11
       postcss: 8.4.31
       react: 18.3.1
@@ -1230,8 +1230,8 @@ packages:
     engines: {node: '>= 6'}
     dev: false
 
-  github.com/MINIMAL-TECHNOLOGY/next-infra/54b813cba994d5475f8172ef10388365ea6d4c71:
-    resolution: {tarball: https://codeload.github.com/MINIMAL-TECHNOLOGY/next-infra/tar.gz/54b813cba994d5475f8172ef10388365ea6d4c71}
+  github.com/MINIMAL-TECHNOLOGY/next-infra/894a852f124b3b01d844cdce02152252aa862b83:
+    resolution: {tarball: https://codeload.github.com/MINIMAL-TECHNOLOGY/next-infra/tar.gz/894a852f124b3b01d844cdce02152252aa862b83}
     name: '@mt/next-infra'
     version: 0.0.1
     engines: {node: 18 || 20}
