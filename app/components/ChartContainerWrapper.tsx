@@ -2,7 +2,12 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 
-import { Exchange, KucoinBulletData, ProductType } from "@/common";
+import {
+  DataPointSettings,
+  Exchange,
+  KucoinBulletData,
+  ProductType,
+} from "@/common";
 import { useChartContext } from "@/context";
 import ChartDataProvider from "@/context/ChartDataProvider";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
@@ -38,6 +43,7 @@ const ChartContainersWrapper: React.FC<{
         symbol: "",
         pricePrecision: 0,
       },
+      maxDataPoints: DataPointSettings.MAX_DATA_POINTS,
     });
   }, [addSelectSymbol]);
 

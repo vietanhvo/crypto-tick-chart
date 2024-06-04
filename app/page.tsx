@@ -33,7 +33,6 @@ async function fetchFutureSymbols(exchange: Exchange): Promise<ITokenData[]> {
           resource: BinancePaths.FUTURE_EXCHANGE_INFO,
           params: {
             method: "GET",
-            cache: "force-cache",
           },
         });
 
@@ -50,7 +49,6 @@ async function fetchFutureSymbols(exchange: Exchange): Promise<ITokenData[]> {
           resource: KucoinPaths.FUTURE_ACTIVE_CONTRACTS,
           params: {
             method: "GET",
-            cache: "force-cache",
           },
         });
 
@@ -80,7 +78,6 @@ async function fetchSpotSymbols(exchange: Exchange): Promise<ITokenData[]> {
           resource: BinancePaths.SPOT_EXCHANGE_INFO,
           params: {
             method: "GET",
-            cache: "force-cache",
           },
         });
 
@@ -100,7 +97,6 @@ async function fetchSpotSymbols(exchange: Exchange): Promise<ITokenData[]> {
           resource: KucoinPaths.SPOT_SYMBOLS,
           params: {
             method: "GET",
-            cache: "force-cache",
           },
         });
 

@@ -1,3 +1,3 @@
-export const streamAggTradeSymbolParser = (symbol: string) => {
-  return `${symbol.toLowerCase()}@aggTrade`;
+export const streamTradeSymbolParser = (symbol: string) => {
+  return `${symbol.toLowerCase()}@trade`;
 };

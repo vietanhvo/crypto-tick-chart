@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { useChartContext } from "@/context";
 import { useChartData } from "@/context/ChartDataProvider";
@@ -41,6 +41,7 @@ const ChartComponent: React.FC<{ id: string }> = ({ id }) => {
   const { selectedSymbolMap } = useChartContext();
   const selectedSymbol = selectedSymbolMap.get(id);
   const { chartData } = useChartData();
+  const [totalData, setTotalData] = useState<LineData<UTCTimestamp>[]>([]);
 
   const chartContainerRef = useRef<HTMLDivElement | null>(null);
   const chartInstanceRef = useRef<IChartApi | null>(null);
@@ -78,6 +79,16 @@ const ChartComponent: React.FC<{ id: string }> = ({ id }) => {
       chart.remove();
     };
   }, []);
+
+  useEffect(() => {
+    if (selectedSymbol?.maxDataPoints && seriesInstanceRef?.current) {
+      const startIndex = totalData.length - selectedSymbol.maxDataPoints;
+
+      seriesInstanceRef.current.setData(
+        totalData.slice(startIndex < 0 ? 0 : startIndex),
+      );
+    }
+  }, [selectedSymbol?.maxDataPoints]);
 
   useEffect(() => {
     if (selectedSymbol?.data?.pricePrecision) {
@@ -132,7 +143,25 @@ const ChartComponent: React.FC<{ id: string }> = ({ id }) => {
         value: currentData.price,
       };
 
+      if (totalData[totalData.length - 1]?.time < newData.time) {
+        setTotalData((prevData) => [...prevData, newData]);
+      } else {
+        setTotalData((prevData) => {
+          prevData.splice(-1);
+
+          return [...prevData, newData];
+        });
+      }
       seriesInstanceRef.current.update(newData);
+
+      const dataAndMaxPointsDiff =
+        seriesInstanceRef.current.data().length - selectedSymbol.maxDataPoints;
+
+      if (dataAndMaxPointsDiff > 0) {
+        seriesInstanceRef.current.setData(
+          seriesInstanceRef.current.data().slice(dataAndMaxPointsDiff),
+        );
+      }
     }
   }, [chartData]);
 

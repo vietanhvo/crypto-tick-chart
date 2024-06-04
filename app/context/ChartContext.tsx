@@ -18,6 +18,7 @@ export type TSelectedSymbol = {
   exchange: string;
   productType: string;
   data: ITokenData;
+  maxDataPoints: number;
 };
 
 interface IChartContextProps {
@@ -34,6 +35,7 @@ interface IChartContextProps {
   }) => void;
   addSelectSymbol: (opts: Omit<TSelectedSymbol, "id">) => void;
   removeSelectSymbol: (opts: string) => void;
+  setDataPointSettings: (props: { id: string; maxDataPoints: number }) => void;
 }
 
 const ChartContext = createContext<IChartContextProps | undefined>(undefined);
@@ -92,6 +94,26 @@ export const ChartProvider: React.FC<IChartProviderProps> = ({
     [setSelectedSymbols, setSelectedSymbolMap],
   );
 
+  const setDataPointSettings = useCallback(
+    (props: { id: string; maxDataPoints: number }) => {
+      const { id, maxDataPoints } = props;
+      setSelectedSymbols((prevSymbols) => {
+        return prevSymbols.map((symbol) => {
+          if (symbol.id === id) {
+            return { ...symbol, maxDataPoints };
+          }
+          return symbol;
+        });
+      });
+
+      setSelectedSymbolMap((prevMap) => {
+        const updatedMap = Map(prevMap);
+        return updatedMap.set(id, { ...updatedMap.get(id), maxDataPoints });
+      });
+    },
+    [setSelectedSymbols, setSelectedSymbolMap],
+  );
+
   const getExchangeProducts = useCallback(
     (props: Record<string, Record<string, ITokenData[]>>) => {
       const exchangeProducts: Record<string, string[]> = {};
@@ -141,6 +163,7 @@ export const ChartProvider: React.FC<IChartProviderProps> = ({
         allSymbols,
         selectedSymbols,
         selectedSymbolMap,
+        setDataPointSettings,
 
         select,
         addSelectSymbol,

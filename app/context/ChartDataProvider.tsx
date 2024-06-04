@@ -15,7 +15,7 @@ import {
 } from "@/common";
 import { useChartContext } from "@/context";
 import WebSocketManager from "@/lib/WebSocketManager";
-import { streamAggTradeSymbolParser } from "@/utils/binance-utils";
+import { streamTradeSymbolParser } from "@/utils/binance-utils";
 import { generateId } from "@/utils/kucoin-utils";
 import { timeToLocal } from "@/utils/timezone";
 import { UTCTimestamp } from "lightweight-charts";
@@ -132,7 +132,7 @@ const ChartDataProvider: React.FC<ChartDataProviderConfig> = ({
                     exchange,
                     productType,
                     exchange === Exchange.BINANCE
-                      ? streamAggTradeSymbolParser(symbol)
+                      ? streamTradeSymbolParser(symbol)
                       : symbol,
                   );
                   resolve();
@@ -143,7 +143,7 @@ const ChartDataProvider: React.FC<ChartDataProviderConfig> = ({
                 exchange,
                 productType,
                 exchange === Exchange.BINANCE
-                  ? streamAggTradeSymbolParser(symbol)
+                  ? streamTradeSymbolParser(symbol)
                   : symbol,
               );
               resolve();
@@ -154,7 +154,7 @@ const ChartDataProvider: React.FC<ChartDataProviderConfig> = ({
 
           const handleBinanceMessage = (data: any) => {
             const { stream, data: messageData } = data;
-            if (stream?.split("@")?.[1] === "aggTrade") {
+            if (stream?.split("@")?.[1] === "trade") {
               const symbolKey = stream.split("@")[0].toLowerCase();
               setChartData((prevData) => ({
                 ...prevData,
@@ -178,9 +178,9 @@ const ChartDataProvider: React.FC<ChartDataProviderConfig> = ({
                 [`${exchange}_${productType}_${symbolKey}`]: {
                   price: parseFloat(messageData.price),
                   timestamp: messageData.ts
-                    ? (timeToLocal(messageData.ts / 10**6) as UTCTimestamp)
+                    ? (timeToLocal(messageData.ts / 10 ** 6) as UTCTimestamp)
                     : (timeToLocal(
-                        parseInt(messageData.time) / 10**6,
+                        parseInt(messageData.time) / 10 ** 6,
                       ) as UTCTimestamp),
                 },
               }));
@@ -214,7 +214,7 @@ const ChartDataProvider: React.FC<ChartDataProviderConfig> = ({
           exchange,
           productType,
           exchange === Exchange.BINANCE
-            ? streamAggTradeSymbolParser(symbol)
+            ? streamTradeSymbolParser(symbol)
             : symbol,
         );
         subscribedSymbolsSet.delete(symbol);

@@ -19,3 +19,8 @@ export const SocketConfiguration: Record<
     connectionDuration: 24 * 60 * 60 * 1000,
   },
 };
+
+export class DataPointSettings {
+  public static readonly MAX_DATA_POINTS = 10000;
+  public static readonly MIN_DATA_POINTS = 50;
+}
