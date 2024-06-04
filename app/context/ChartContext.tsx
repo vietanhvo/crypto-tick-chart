@@ -129,9 +129,16 @@ export const ChartProvider: React.FC<IChartProviderProps> = ({
     if (typeof window !== "undefined") {
       const storedSymbols = localStorage.getItem("selectedSymbols");
       if (storedSymbols) {
-        const parsedSymbols = JSON.parse(
-          storedSymbols,
-        ) as Array<TSelectedSymbol>;
+        let parsedSymbols = JSON.parse(storedSymbols) as Array<TSelectedSymbol>;
+
+        parsedSymbols = parsedSymbols.filter(
+          (symbol) =>
+            symbol.id &&
+            symbol.data.symbol &&
+            symbol.exchange &&
+            symbol.productType &&
+            symbol.maxDataPoints,
+        );
 
         setSelectedSymbols(parsedSymbols);
 
