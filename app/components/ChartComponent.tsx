@@ -55,15 +55,10 @@ const ChartComponent: React.FC<{ id: string }> = ({ id }) => {
   }, []);
 
   useEffect(() => {
-    const handleResize = () => {
-      resizeChart();
-    };
-
-    window.addEventListener("resize", handleResize);
-    resizeChart();
+    window.addEventListener("resize", resizeChart);
 
     return () => {
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("resize", resizeChart);
     };
   }, [resizeChart]);
 
@@ -74,6 +69,8 @@ const ChartComponent: React.FC<{ id: string }> = ({ id }) => {
     });
 
     chartInstanceRef.current = chart;
+
+    resizeChart();
 
     return () => {
       chart.remove();
